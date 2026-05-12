@@ -24,9 +24,6 @@ function Header({ pathname }) {
       <div>
         <p className="breadcrumb">{meta.crumb}</p>
         <h2>{meta.title}</h2>
-        <p className="topbar-tagline">
-          Ruang kerja ramah — ala kafe: sederhana, hangat, untuk tim dan komunitas Anda.
-        </p>
       </div>
       <div className="topbar-actions">
         <button type="button">View More</button>
