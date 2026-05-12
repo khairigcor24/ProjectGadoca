@@ -9,6 +9,9 @@ function MainLayout() {
     <div className="dashboard">
       <Sidebar />
       <main className="main-content">
+        <p className="cafe-strip">
+          Pesan sebelum tengah hari untuk pengiriman besok · Gadocaa — dibuat dengan hati, setiap hari
+        </p>
         <Header pathname={location.pathname} />
         <div className="page-content">
           <Outlet />

@@ -1,8 +1,8 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import gadocaaLogo from '../assets/gadocaa-logo.png'
 
 const menus = [
-  { to: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
+  { to: '/dashboard/overview', label: 'Dashboard', icon: 'dashboard', activePrefix: '/dashboard' },
   { to: '/product', label: 'Product', icon: 'product' },
   { to: '/transactions', label: 'Transactions', icon: 'transactions' },
   { to: '/analytics', label: 'Analytics', icon: 'analytics' },
@@ -36,6 +36,8 @@ function MenuIcon({ name }) {
 }
 
 function Sidebar() {
+  const location = useLocation()
+
   return (
     <aside className="sidebar">
       <div className="brand">
@@ -51,7 +53,12 @@ function Sidebar() {
           <NavLink
             key={menu.to}
             to={menu.to}
-            className={({ isActive }) => (isActive ? 'active' : '')}
+            className={({ isActive }) => {
+              const active = menu.activePrefix
+                ? location.pathname.startsWith(menu.activePrefix)
+                : isActive
+              return active ? 'active' : ''
+            }}
           >
             <span className="nav-icon">
               <MenuIcon name={menu.icon} />
