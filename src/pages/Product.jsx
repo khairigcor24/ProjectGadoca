@@ -1,87 +1,98 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { Link } from 'react-router-dom'
+import { formatMenuPrice, getCustomMenus } from '../lib/menuStore'
+import MenuFormModal from '../sections/MenuFormModal'
 
 function Product() {
   const [products, setProducts] = useState([])
   const [search, setSearch] = useState('')
   const [error, setError] = useState(null)
+  const [showForm, setShowForm] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    const customMenus = getCustomMenus()
+
     axios
       .get('https://dummyjson.com/products')
       .then((response) => {
-        setProducts(response.data.products)
+        setProducts([...customMenus, ...response.data.products])
       })
       .catch((err) => {
         setError(err.message)
+        setProducts(customMenus)
       })
+      .finally(() => setLoading(false))
   }, [])
+
+  function handleMenuAdded(newItem) {
+    setProducts((prev) => [newItem, ...prev])
+  }
 
   const filteredProducts = products.filter((product) =>
     product.title.toLowerCase().includes(search.toLowerCase())
   )
 
   return (
-    <section className="panel">
-      <div className="table-head">
-        <h3>Product List</h3>
-        <button type="button">Add Product</button>
-      </div>
+    <>
+      <section className="panel">
+        <div className="table-head">
+          <h3>Daftar Menu</h3>
+          <button type="button" onClick={() => setShowForm(true)}>
+            Tambah Menu
+          </button>
+        </div>
 
-      <div style={{ marginBottom: '20px' }}>
-        <input
-          type="text"
-          placeholder="Search product..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{
-            width: '100%',
-            padding: '10px',
-            border: '1px solid #ccc',
-            borderRadius: '6px'
-          }}
-        />
-      </div>
+        <div className="search-bar">
+          <input
+            type="text"
+            className="search-input"
+            placeholder="Cari menu..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
 
-      {error && <p>{error}</p>}
+        {error && <p className="login-error">{error}</p>}
 
-      <div className="table-wrap">
-        <table>
-          <thead>
-            <tr>
-              <th>Product Name</th>
-              <th>Category</th>
-              <th>Stock</th>
-              <th>Price</th>
-            </tr>
-          </thead>
+        {loading ? (
+          <p className="empty-state">Memuat menu…</p>
+        ) : filteredProducts.length > 0 ? (
+          <div className="menu-grid">
+            {filteredProducts.map((product) => (
+              <article key={product.id} className="menu-card">
+                {product.isLocal ? <span className="menu-card__badge">Baru</span> : null}
+                <img
+                  src={product.thumbnail}
+                  alt={product.title}
+                  className="menu-card__image"
+                  loading="lazy"
+                />
+                <div className="menu-card__body">
+                  <p className="menu-card__category">{product.category}</p>
+                  <h4 className="menu-card__title">
+                    <Link to={`/product/${product.id}`}>{product.title}</Link>
+                  </h4>
+                  <div className="menu-card__meta">
+                    <span className="menu-card__price">{formatMenuPrice(product)}</span>
+                    <span className="menu-card__stock">Stok: {product.stock}</span>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </div>
+        ) : (
+          <p className="empty-state">Menu tidak ditemukan</p>
+        )}
+      </section>
 
-          <tbody>
-            {filteredProducts.length > 0 ? (
-              filteredProducts.map((product) => (
-                <tr key={product.id}>
-                  <td>
-                    <Link to={`/product/${product.id}`}>
-                      {product.title}
-                    </Link>
-                  </td>
-                  <td>{product.category}</td>
-                  <td>{product.stock}</td>
-                  <td>${product.price}</td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan="4" style={{ textAlign: 'center' }}>
-                  Product not found
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
-    </section>
+      <MenuFormModal
+        open={showForm}
+        onClose={() => setShowForm(false)}
+        onAdded={handleMenuAdded}
+      />
+    </>
   )
 }
 

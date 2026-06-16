@@ -9,16 +9,16 @@ function Transactions() {
   return (
     <section className="panel">
       <div className="table-head">
-        <h3>Transactions</h3>
-        <button type="button">Export</button>
+        <h3>Transaksi</h3>
+        <button type="button">Ekspor</button>
       </div>
       <div className="table-wrap">
         <table>
           <thead>
             <tr>
               <th>ID</th>
-              <th>Customer</th>
-              <th>Amount</th>
+              <th>Pelanggan</th>
+              <th>Jumlah</th>
               <th>Status</th>
             </tr>
           </thead>

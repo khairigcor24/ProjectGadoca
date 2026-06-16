@@ -2,17 +2,17 @@ function Analytics() {
   return (
     <section className="content-grid">
       <article className="panel large">
-        <h3>Traffic Overview</h3>
-        <p>Performance from all channels</p>
+        <h3>Ikhtisar Trafik</h3>
+        <p>Performa dari semua kanal</p>
         <div className="chart-placeholder">
-          <span>Line Chart</span>
+          <span>Grafik Garis</span>
         </div>
       </article>
       <article className="panel">
-        <h3>Conversion Rate</h3>
-        <p>Overall conversion this month</p>
+        <h3>Tingkat Konversi</h3>
+        <p>Konversi keseluruhan bulan ini</p>
         <h3 className="metric-value">12.7%</h3>
-        <span className="positive">+3.1% from last month</span>
+        <span className="positive">+3,1% dari bulan lalu</span>
       </article>
     </section>
   )

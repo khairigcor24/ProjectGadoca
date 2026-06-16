@@ -1,10 +1,41 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import axios from 'axios'
+import { formatMenuPrice, getCustomMenuById, isLocalMenuId } from '../lib/menuStore'
 
-function ProductDetail() {
-  const { id } = useParams()
+function ProductDetailView({ product }) {
+  return (
+    <section className="panel product-detail">
+      <div className="product-detail__image-wrap">
+        <img
+          src={product.images?.[0] ?? product.thumbnail}
+          alt={product.title}
+          className="product-detail__image"
+        />
+      </div>
 
+      <div className="product-detail__info">
+        <p className="product-detail__category">{product.category}</p>
+        <h2>{product.title}</h2>
+        <p className="product-detail__price">{formatMenuPrice(product)}</p>
+
+        <div className="product-detail__meta">
+          <p><strong>Merek:</strong> {product.brand ?? '—'}</p>
+          <p><strong>Stok:</strong> {product.stock} unit</p>
+          {product.rating != null ? (
+            <p><strong>Rating:</strong> {product.rating} / 5</p>
+          ) : null}
+        </div>
+
+        {product.description ? (
+          <p className="product-detail__description">{product.description}</p>
+        ) : null}
+      </div>
+    </section>
+  )
+}
+
+function RemoteProductDetail({ id }) {
   const [product, setProduct] = useState(null)
   const [error, setError] = useState(null)
 
@@ -24,26 +55,27 @@ function ProductDetail() {
   }
 
   if (!product) {
-    return <div className="panel">Loading...</div>
+    return <div className="panel">Memuat…</div>
   }
 
-  return (
-    <section className="panel">
-      <h2>{product.title}</h2>
+  return <ProductDetailView product={product} />
+}
 
-      <img
-        src={product.thumbnail}
-        alt={product.title}
-        width="250"
-      />
+function ProductDetailContent({ id }) {
+  if (isLocalMenuId(id)) {
+    const product = getCustomMenuById(id)
+    if (!product) {
+      return <div className="panel">Error: Menu tidak ditemukan.</div>
+    }
+    return <ProductDetailView product={product} />
+  }
 
-      <p><strong>Category:</strong> {product.category}</p>
-      <p><strong>Brand:</strong> {product.brand}</p>
-      <p><strong>Price:</strong> ${product.price}</p>
-      <p><strong>Stock:</strong> {product.stock}</p>
-      <p>{product.description}</p>
-    </section>
-  )
+  return <RemoteProductDetail key={id} id={id} />
+}
+
+function ProductDetail() {
+  const { id } = useParams()
+  return <ProductDetailContent key={id} id={id} />
 }
 
 export default ProductDetail

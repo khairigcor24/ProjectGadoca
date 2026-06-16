@@ -1,17 +1,17 @@
 function Dashboard() {
   const stats = [
-    { label: 'Customers', value: '3,782', trend: '+11.01%', positive: true },
-    { label: 'Orders', value: '5,359', trend: '+9.05%', positive: true },
-    { label: 'Revenue', value: '$42,890', trend: '+5.32%', positive: true },
-    { label: 'Pending', value: '84', trend: '-1.20%', positive: false },
+    { label: 'Pelanggan', value: '3.782', trend: '+11,01%', positive: true },
+    { label: 'Pesanan', value: '5.359', trend: '+9,05%', positive: true },
+    { label: 'Pendapatan', value: 'Rp 42,8jt', trend: '+5,32%', positive: true },
+    { label: 'Menunggu', value: '84', trend: '-1,20%', positive: false },
   ]
 
   const orders = [
-    { product: 'Macbook Pro 13"', category: 'Laptop', price: '$2,399.00', status: 'Delivered' },
-    { product: 'Apple Watch Ultra', category: 'Watch', price: '$879.00', status: 'Pending' },
-    { product: 'iPhone 15 Pro Max', category: 'Smartphone', price: '$1,869.00', status: 'Delivered' },
-    { product: 'iPad Pro 3rd Gen', category: 'Electronics', price: '$1,699.00', status: 'Canceled' },
-    { product: 'AirPods Pro 2nd Gen', category: 'Accessories', price: '$240.00', status: 'Delivered' },
+    { product: 'Latte Signature', category: 'Kopi', price: 'Rp 45.000', status: 'Delivered' },
+    { product: 'Croissant Butter', category: 'Pastry', price: 'Rp 32.000', status: 'Pending' },
+    { product: 'Cold Brew Oat', category: 'Kopi', price: 'Rp 48.000', status: 'Delivered' },
+    { product: 'Matcha Latte', category: 'Minuman', price: 'Rp 52.000', status: 'Canceled' },
+    { product: 'Banana Bread', category: 'Roti', price: 'Rp 28.000', status: 'Delivered' },
   ]
 
   return (
@@ -28,36 +28,36 @@ function Dashboard() {
 
       <section className="content-grid">
         <article className="panel large">
-          <h3>Monthly Target</h3>
-          <p>Target you've set for each month</p>
+          <h3>Target Bulanan</h3>
+          <p>Target penjualan yang Anda tetapkan setiap bulan</p>
           <div className="chart-placeholder">
-            <span>Chart Area</span>
+            <span>Area Grafik</span>
           </div>
         </article>
 
         <article className="panel">
-          <h3>Customers Demography</h3>
-          <p>Number of customer based on country</p>
+          <h3>Demografi Pelanggan</h3>
+          <p>Jumlah pelanggan berdasarkan lokasi</p>
           <ul className="country-list">
-            <li><strong>USA</strong><span>2,379 Customers (79%)</span></li>
-            <li><strong>France</strong><span>589 Customers (23%)</span></li>
-            <li><strong>Canada</strong><span>412 Customers (14%)</span></li>
+            <li><strong>Jakarta</strong><span>2.379 pelanggan (79%)</span></li>
+            <li><strong>Bandung</strong><span>589 pelanggan (23%)</span></li>
+            <li><strong>Surabaya</strong><span>412 pelanggan (14%)</span></li>
           </ul>
         </article>
       </section>
 
       <section className="panel">
         <div className="table-head">
-          <h3>Recent Orders</h3>
-          <button type="button">See all</button>
+          <h3>Pesanan Terbaru</h3>
+          <button type="button">Lihat semua</button>
         </div>
         <div className="table-wrap">
           <table>
             <thead>
               <tr>
-                <th>Products</th>
-                <th>Category</th>
-                <th>Price</th>
+                <th>Produk</th>
+                <th>Kategori</th>
+                <th>Harga</th>
                 <th>Status</th>
               </tr>
             </thead>

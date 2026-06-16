@@ -1,5 +1,6 @@
 import { Outlet, useLocation } from 'react-router-dom'
 import Header from '../sections/Header'
+import HeroBanner from '../sections/HeroBanner'
 import Sidebar from '../sections/Sidebar'
 
 function MainLayout() {
@@ -12,6 +13,7 @@ function MainLayout() {
         <p className="cafe-strip">
           Pesan sebelum tengah hari untuk pengiriman besok · Gadocaa — dibuat dengan hati, setiap hari
         </p>
+        <HeroBanner pathname={location.pathname} />
         <Header pathname={location.pathname} />
         <div className="page-content">
           <Outlet />

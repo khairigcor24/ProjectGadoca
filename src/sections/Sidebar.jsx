@@ -3,10 +3,10 @@ import gadocaaLogo from '../assets/gadocaa-logo.png'
 
 const menus = [
   { to: '/dashboard/overview', label: 'Dashboard', icon: 'dashboard', activePrefix: '/dashboard' },
-  { to: '/product', label: 'Product', icon: 'product' },
-  { to: '/transactions', label: 'Transactions', icon: 'transactions' },
-  { to: '/analytics', label: 'Analytics', icon: 'analytics' },
-  { to: '/user-profile', label: 'User Profile', icon: 'profile' },
+  { to: '/product', label: 'Menu', icon: 'product' },
+  { to: '/transactions', label: 'Pesanan', icon: 'transactions' },
+  { to: '/analytics', label: 'Analitik', icon: 'analytics' },
+  { to: '/user-profile', label: 'Profil', icon: 'profile' },
 ]
 
 function MenuIcon({ name }) {

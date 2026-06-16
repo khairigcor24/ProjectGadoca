@@ -43,7 +43,7 @@ function UserProfile() {
               <strong>{user.location}</strong>
             </div>
           </div>
-          <button type="button">Edit Profile</button>
+          <button type="button">Edit Profil</button>
         </article>
       ))}
     </section>
