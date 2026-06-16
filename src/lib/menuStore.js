@@ -49,6 +49,12 @@ export function isLocalMenuId(id) {
   return String(id).startsWith('local-')
 }
 
+export function deleteCustomMenu(id) {
+  const items = getCustomMenus()
+  const filtered = items.filter((item) => String(item.id) !== String(id))
+  saveCustomMenus(filtered)
+}
+
 export function formatMenuPrice(product) {
   const value = Number(product.price)
   if (product.isLocal) {

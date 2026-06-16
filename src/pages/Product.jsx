@@ -1,8 +1,20 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { Link } from 'react-router-dom'
-import { formatMenuPrice, getCustomMenus } from '../lib/menuStore'
+import { formatMenuPrice, getCustomMenus, deleteCustomMenu, isLocalMenuId } from '../lib/menuStore'
+import { isGuest } from '../lib/auth'
 import MenuFormModal from '../sections/MenuFormModal'
+
+const DRINK_CATEGORIES = ['Kopi', 'Minuman']
+const FOOD_CATEGORIES = ['Pastry', 'Roti', 'Makanan', 'Snack']
+
+function isDrink(product) {
+  return DRINK_CATEGORIES.includes(product.category)
+}
+
+function isFood(product) {
+  return FOOD_CATEGORIES.includes(product.category)
+}
 
 function Product() {
   const [products, setProducts] = useState([])
@@ -15,7 +27,7 @@ function Product() {
     const customMenus = getCustomMenus()
 
     axios
-      .get('https://dummyjson.com/products')
+      .get('')
       .then((response) => {
         setProducts([...customMenus, ...response.data.products])
       })
@@ -30,8 +42,50 @@ function Product() {
     setProducts((prev) => [newItem, ...prev])
   }
 
+  function handleDeleteMenu(id) {
+    if (isLocalMenuId(id) && window.confirm('Yakin ingin menghapus menu ini?')) {
+      deleteCustomMenu(id)
+      setProducts((prev) => prev.filter((product) => product.id !== id))
+    }
+  }
+
   const filteredProducts = products.filter((product) =>
     product.title.toLowerCase().includes(search.toLowerCase())
+  )
+
+  const drinks = filteredProducts.filter(isDrink)
+  const foods = filteredProducts.filter(isFood)
+
+  const renderMenuCard = (product) => (
+    <article key={product.id} className="menu-card">
+      {product.isLocal ? <span className="menu-card__badge">Baru</span> : null}
+      <img
+        src={product.thumbnail}
+        alt={product.title}
+        className="menu-card__image"
+        loading="lazy"
+      />
+      <div className="menu-card__body">
+        <p className="menu-card__category">{product.category}</p>
+        <h4 className="menu-card__title">
+          <Link to={`/product/${product.id}`}>{product.title}</Link>
+        </h4>
+        <div className="menu-card__meta">
+          <span className="menu-card__price">{formatMenuPrice(product)}</span>
+          <span className="menu-card__stock">Stok: {product.stock}</span>
+        </div>
+        {product.isLocal && !isGuest() && (
+          <button
+            type="button"
+            className="menu-card__delete"
+            onClick={() => handleDeleteMenu(product.id)}
+            aria-label="Hapus menu"
+          >
+            Hapus
+          </button>
+        )}
+      </div>
+    </article>
   )
 
   return (
@@ -39,9 +93,11 @@ function Product() {
       <section className="panel">
         <div className="table-head">
           <h3>Daftar Menu</h3>
-          <button type="button" onClick={() => setShowForm(true)}>
-            Tambah Menu
-          </button>
+          {!isGuest() && (
+            <button type="button" onClick={() => setShowForm(true)}>
+              Tambah Menu
+            </button>
+          )}
         </div>
 
         <div className="search-bar">
@@ -58,29 +114,35 @@ function Product() {
 
         {loading ? (
           <p className="empty-state">Memuat menu…</p>
+        ) : isGuest() && filteredProducts.length > 0 ? (
+          <>
+            {/* Minuman Section */}
+            {drinks.length > 0 && (
+              <>
+                <h3 style={{ marginTop: '2rem', marginBottom: '1rem', fontSize: '1.5rem' }}>
+                  🍵 Minuman
+                </h3>
+                <div className="menu-grid" style={{ marginBottom: '2rem' }}>
+                  {drinks.map(renderMenuCard)}
+                </div>
+              </>
+            )}
+
+            {/* Makanan Section */}
+            {foods.length > 0 && (
+              <>
+                <h3 style={{ marginTop: '2rem', marginBottom: '1rem', fontSize: '1.5rem' }}>
+                  🍽️ Makanan
+                </h3>
+                <div className="menu-grid">
+                  {foods.map(renderMenuCard)}
+                </div>
+              </>
+            )}
+          </>
         ) : filteredProducts.length > 0 ? (
           <div className="menu-grid">
-            {filteredProducts.map((product) => (
-              <article key={product.id} className="menu-card">
-                {product.isLocal ? <span className="menu-card__badge">Baru</span> : null}
-                <img
-                  src={product.thumbnail}
-                  alt={product.title}
-                  className="menu-card__image"
-                  loading="lazy"
-                />
-                <div className="menu-card__body">
-                  <p className="menu-card__category">{product.category}</p>
-                  <h4 className="menu-card__title">
-                    <Link to={`/product/${product.id}`}>{product.title}</Link>
-                  </h4>
-                  <div className="menu-card__meta">
-                    <span className="menu-card__price">{formatMenuPrice(product)}</span>
-                    <span className="menu-card__stock">Stok: {product.stock}</span>
-                  </div>
-                </div>
-              </article>
-            ))}
+            {filteredProducts.map(renderMenuCard)}
           </div>
         ) : (
           <p className="empty-state">Menu tidak ditemukan</p>
@@ -88,7 +150,7 @@ function Product() {
       </section>
 
       <MenuFormModal
-        open={showForm}
+        open={showForm && !isGuest()}
         onClose={() => setShowForm(false)}
         onAdded={handleMenuAdded}
       />

@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
-import { clearToken } from '../lib/auth'
+import { clearToken, clearGuestToken, isGuest } from '../lib/auth'
 
-const pageMeta = {
+const adminPageMeta = {
   '/dashboard/overview': {
     title: 'Ringkasan Penjualan',
     crumb: 'Dashboard / Ringkasan',
@@ -34,16 +34,33 @@ const pageMeta = {
   },
 }
 
+const guestPageMeta = {
+  '/product': {
+    title: 'Daftar Menu',
+    crumb: 'Belanja / Menu',
+    tagline: 'Jelajahi menu favorit kami.',
+  },
+}
+
 function Header({ pathname }) {
   const navigate = useNavigate()
+  const userIsGuest = isGuest()
+  const pageMeta = userIsGuest ? guestPageMeta : adminPageMeta
+
   const meta =
     Object.entries(pageMeta).find(([path]) => pathname.startsWith(path))?.[1] ??
     (pathname.startsWith('/product/')
-      ? { title: 'Detail Produk', crumb: 'Menu / Detail', tagline: 'Informasi lengkap item menu.' }
-      : pageMeta['/dashboard/overview'])
+      ? userIsGuest
+        ? { title: 'Detail Menu', crumb: 'Belanja / Detail', tagline: 'Lihat detail menu ini.' }
+        : { title: 'Detail Produk', crumb: 'Menu / Detail', tagline: 'Informasi lengkap item menu.' }
+      : pageMeta[Object.keys(pageMeta)[0]])
 
   function handleLogout() {
-    clearToken()
+    if (userIsGuest) {
+      clearGuestToken()
+    } else {
+      clearToken()
+    }
     navigate('/login', { replace: true })
   }
 

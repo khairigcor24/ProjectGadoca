@@ -17,8 +17,20 @@ function MenuFormModal({ open, onClose, onAdded }) {
   if (!open) return null
 
   function handleChange(e) {
-    const { name, value } = e.target
-    setForm((prev) => ({ ...prev, [name]: value }))
+    const { name, value, type, files } = e.target
+    
+    if (type === 'file' && files) {
+      const file = files[0]
+      if (file) {
+        const reader = new FileReader()
+        reader.onload = (event) => {
+          setForm((prev) => ({ ...prev, [name]: event.target.result }))
+        }
+        reader.readAsDataURL(file)
+      }
+    } else {
+      setForm((prev) => ({ ...prev, [name]: value }))
+    }
   }
 
   function handleSubmit(e) {
@@ -134,13 +146,12 @@ function MenuFormModal({ open, onClose, onAdded }) {
           </label>
 
           <label>
-            URL Gambar (opsional)
+            Upload Gambar (opsional)
             <input
-              type="url"
+              type="file"
               name="thumbnail"
               className="form-input"
-              placeholder={DEFAULT_MENU_IMAGE}
-              value={form.thumbnail}
+              accept="image/*"
               onChange={handleChange}
             />
           </label>

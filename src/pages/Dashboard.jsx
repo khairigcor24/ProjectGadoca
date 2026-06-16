@@ -16,6 +16,114 @@ function Dashboard() {
 
   return (
     <div className="page-stack">
+      <section 
+        className="hero-banner"
+        style={{
+          backgroundImage: 'url(https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=1200&q=80)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundAttachment: 'fixed',
+          minHeight: '400px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'flex-start',
+          position: 'relative',
+          borderRadius: '8px',
+          overflow: 'hidden',
+          marginBottom: '2rem',
+        }}
+      >
+        {/* Overlay untuk kontras */}
+        <div
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.4)',
+            zIndex: 1,
+          }}
+        />
+        
+        {/* Content */}
+        <div
+          style={{
+            position: 'relative',
+            zIndex: 2,
+            color: 'white',
+            paddingLeft: '4rem',
+            paddingRight: '4rem',
+            maxWidth: '600px',
+          }}
+        >
+          <p style={{ fontSize: '0.875rem', opacity: 0.9, marginBottom: '0.5rem' }}>
+            Cafe & Restaurant Est. 2035
+          </p>
+          <h1
+            style={{
+              fontSize: '3.5rem',
+              fontWeight: 'bold',
+              lineHeight: 1.2,
+              marginBottom: '2rem',
+              textShadow: '2px 2px 4px rgba(0, 0, 0, 0.5)',
+            }}
+          >
+            Your Go-to Spot for Delicious Eats & Coffee
+          </h1>
+          <div style={{ display: 'flex', gap: '1rem' }}>
+            <button
+              type="button"
+              style={{
+                padding: '0.75rem 2rem',
+                border: '1px solid white',
+                backgroundColor: 'transparent',
+                color: 'white',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '1rem',
+                fontWeight: '500',
+                transition: 'all 0.3s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = 'white'
+                e.target.style.color = '#000'
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'transparent'
+                e.target.style.color = 'white'
+              }}
+            >
+              Order Online
+            </button>
+            <button
+              type="button"
+              style={{
+                padding: '0.75rem 2rem',
+                border: '1px solid white',
+                backgroundColor: 'transparent',
+                color: 'white',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontSize: '1rem',
+                fontWeight: '500',
+                transition: 'all 0.3s ease',
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.backgroundColor = 'white'
+                e.target.style.color = '#000'
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.backgroundColor = 'transparent'
+                e.target.style.color = 'white'
+              }}
+            >
+              Our Menu
+            </button>
+          </div>
+        </div>
+      </section>
+
       <section className="stats-grid">
         {stats.map((item) => (
           <article key={item.label} className="stat-card">

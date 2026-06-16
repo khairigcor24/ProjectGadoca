@@ -13,6 +13,7 @@ const DashboardInsights = lazy(() => import('./pages/DashboardInsights'))
 
 const Product = lazy(() => import('./pages/Product'))
 const ProductDetail = lazy(() => import('./pages/ProductDetail'))
+const Cart = lazy(() => import('./pages/Cart'))
 
 const Transactions = lazy(() => import('./pages/Transactions'))
 const Analytics = lazy(() => import('./pages/Analytics'))
@@ -54,6 +55,7 @@ function App() {
               {/* Product */}
               <Route path="product" element={<Product />} />
               <Route path="product/:id" element={<ProductDetail />} />
+              <Route path="cart" element={<Cart />} />
 
               {/* Other Pages */}
               <Route path="transactions" element={<Transactions />} />

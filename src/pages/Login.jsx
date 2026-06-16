@@ -2,7 +2,7 @@ import axios from 'axios'
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import gadocaaLogo from '../assets/gadocaa-logo.png'
-import { setToken } from '../lib/auth'
+import { setToken, setGuestToken } from '../lib/auth'
 
 const LOGIN_URL = 'https://reqres.in/api/login'
 const DEMO_EMAIL = 'gadocaa@gmail.com'
@@ -39,6 +39,11 @@ function Login() {
     } finally {
       setLoading(false)
     }
+  }
+
+  function handleGuestLogin() {
+    setGuestToken('guest-' + Date.now())
+    navigate('/product', { replace: true })
   }
 
   return (
@@ -80,6 +85,30 @@ function Login() {
             {loading ? 'Memproses…' : 'Masuk'}
           </button>
         </form>
+
+        <div style={{ marginTop: '1.5rem', textAlign: 'center' }}>
+          <p style={{ color: '#6b7280', marginBottom: '1rem', fontSize: '0.875rem' }}>atau</p>
+          <button
+            type="button"
+            onClick={handleGuestLogin}
+            style={{
+              width: '100%',
+              padding: '0.75rem 1rem',
+              backgroundColor: '#10b981',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '1rem',
+              fontWeight: '500',
+              transition: 'background-color 0.2s',
+            }}
+            onMouseEnter={(e) => (e.target.style.backgroundColor = '#059669')}
+            onMouseLeave={(e) => (e.target.style.backgroundColor = '#10b981')}
+          >
+            Masuk sebagai Tamu
+          </button>
+        </div>
 
         <p className="login-hint">
           Gadocaa: {DEMO_EMAIL} / {DEMO_PASSWORD}
