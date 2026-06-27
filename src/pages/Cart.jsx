@@ -4,6 +4,7 @@ import { formatMenuPrice } from '../lib/menuStore'
 import { getCart, removeFromCart, updateCartQuantity, clearCart, getCartTotal } from '../lib/cartStore'
 import { createGuestOrder } from '../lib/guestOrderStore'
 import { PlusIcon, MinusIcon } from '../components/Icons'
+import qrisImage from '../assets/qrisgadoca.png'
 
 function Cart() {
   const [cart, setCart] = useState([])
@@ -13,12 +14,45 @@ function Cart() {
     address: '',
   })
   const [paymentMethod, setPaymentMethod] = useState('cash')
+  const [showQrisPreview, setShowQrisPreview] = useState(false)
+  const [qrisCountdown, setQrisCountdown] = useState(120)
+  const [qrisExpired, setQrisExpired] = useState(false)
   const [orderSuccess, setOrderSuccess] = useState(false)
   const navigate = useNavigate()
 
   useEffect(() => {
     setCart(getCart())
   }, [])
+
+  useEffect(() => {
+    if (!showQrisPreview || paymentMethod !== 'qris' || qrisExpired) {
+      return undefined
+    }
+
+    if (qrisCountdown <= 0) {
+      setQrisExpired(true)
+      return undefined
+    }
+
+    const timerId = setInterval(() => {
+      setQrisCountdown((prev) => {
+        if (prev <= 1) {
+          setQrisExpired(true)
+          clearInterval(timerId)
+          return 0
+        }
+        return prev - 1
+      })
+    }, 1000)
+
+    return () => clearInterval(timerId)
+  }, [showQrisPreview, paymentMethod, qrisCountdown, qrisExpired])
+
+  function formatTime(seconds) {
+    const minutes = Math.floor(seconds / 60).toString().padStart(2, '0')
+    const secs = (seconds % 60).toString().padStart(2, '0')
+    return `${minutes}:${secs}`
+  }
 
   function handleRemoveItem(id) {
     removeFromCart(id)
@@ -35,6 +69,24 @@ function Cart() {
     setCustomerInfo((prev) => ({ ...prev, [name]: value }))
   }
 
+  function handleQrisPaymentConfirmed() {
+    const total = getCartTotal()
+    createGuestOrder(customerInfo, cart, total, paymentMethod, 'Delivered')
+    setShowQrisPreview(false)
+    setOrderSuccess(true)
+
+    setTimeout(() => {
+      clearCart()
+      setCart([])
+      setCustomerInfo({ name: '', phone: '', address: '' })
+      setPaymentMethod('cash')
+      setQrisExpired(false)
+      setQrisCountdown(120)
+      setOrderSuccess(false)
+      navigate('/transactions')
+    }, 1500)
+  }
+
   function handleCheckout(e) {
     e.preventDefault()
 
@@ -45,6 +97,13 @@ function Cart() {
 
     if (cart.length === 0) {
       alert('Keranjang Anda kosong.')
+      return
+    }
+
+    if (paymentMethod === 'qris') {
+      setShowQrisPreview(true)
+      setQrisExpired(false)
+      setQrisCountdown(120)
       return
     }
 
@@ -285,6 +344,80 @@ function Cart() {
                     ))}
                   </div>
                 </div>
+
+                {showQrisPreview && paymentMethod === 'qris' && (
+                  <div
+                    style={{
+                      marginBottom: '1.5rem',
+                      padding: '1rem',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '12px',
+                      backgroundColor: '#ffffff',
+                      boxShadow: '0 2px 10px rgba(15, 23, 42, 0.05)',
+                    }}
+                  >
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
+                      <div>
+                        <h4 style={{ margin: 0 }}>QRIS</h4>
+                        <p style={{ margin: '0.25rem 0 0', color: '#6b7280', fontSize: '0.95rem' }}>
+                          Scan QR code berikut dengan aplikasi yang mendukung QRIS untuk membayar.
+                        </p>
+                      </div>
+                      <span style={{ fontWeight: '700', color: qrisExpired ? '#dc2626' : '#10b981' }}>
+                        {qrisExpired ? 'Expired' : formatTime(qrisCountdown)}
+                      </span>
+                    </div>
+                    <img
+                      src={qrisImage}
+                      alt="QRIS"
+                      style={{ width: '100%', maxWidth: '320px', borderRadius: '16px', display: 'block', margin: '0 auto' }}
+                    />
+                    <p style={{ marginTop: '1rem', fontSize: '0.9rem', color: '#6b7280' }}>
+                      {qrisExpired
+                        ? 'Kode QR sudah kadaluarsa. Silakan tekan Checkout lagi untuk membuat kode baru.'
+                        : 'Setelah scan berhasil, selesaikan pembayaran di aplikasi Anda.'}
+                    </p>
+                    <div style={{ display: 'grid', gap: '0.75rem', marginTop: '1rem' }}>
+                      {qrisExpired ? (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setQrisExpired(false)
+                            setQrisCountdown(120)
+                            setShowQrisPreview(true)
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '0.75rem',
+                            backgroundColor: '#2563eb',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Buat Ulang QRIS
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={handleQrisPaymentConfirmed}
+                          style={{
+                            width: '100%',
+                            padding: '0.75rem',
+                            backgroundColor: '#10b981',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          Saya sudah bayar
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
 
                 <button
                   type="submit"

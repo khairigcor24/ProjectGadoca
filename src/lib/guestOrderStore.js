@@ -13,7 +13,7 @@ function saveGuestOrders(orders) {
   localStorage.setItem(GUEST_ORDERS_KEY, JSON.stringify(orders))
 }
 
-export function createGuestOrder(customerInfo, items, total, paymentMethod = 'cash') {
+export function createGuestOrder(customerInfo, items, total, paymentMethod = 'cash', status = 'Pending') {
   const orders = getGuestOrders()
   
   const newOrder = {
@@ -24,7 +24,7 @@ export function createGuestOrder(customerInfo, items, total, paymentMethod = 'ca
     items: items,
     total: total,
     paymentMethod: paymentMethod,
-    status: 'Pending',
+    status: status,
     createdAt: new Date().toISOString(),
   }
   

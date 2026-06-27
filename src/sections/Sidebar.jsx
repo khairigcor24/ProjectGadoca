@@ -14,6 +14,7 @@ const adminMenus = [
 ]
 
 const guestMenus = [
+  { to: '/dashboard/overview', label: 'Dashboard', icon: 'dashboard', activePrefix: '/dashboard' },
   { to: '/product', label: 'Menu', icon: 'product' },
   { to: '/cart', label: 'Keranjang', icon: 'cart', badge: true },
 ]

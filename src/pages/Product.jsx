@@ -29,7 +29,11 @@ function Product() {
     axios
       .get('')
       .then((response) => {
-        setProducts([...customMenus, ...response.data.products])
+        const apiProducts = Array.isArray(response.data?.products)
+          ? response.data.products
+          : []
+
+        setProducts([...customMenus, ...apiProducts])
       })
       .catch((err) => {
         setError(err.message)

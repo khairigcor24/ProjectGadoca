@@ -6,8 +6,8 @@ function ProtectedRoute() {
   const adminToken = getToken()
   const guestToken = getGuestToken()
 
-  // Guest can only access product, cart, and product detail pages
-  const guestAllowedPaths = ['/product', '/cart']
+  // Guest can access dashboard, product, cart, and product detail pages
+  const guestAllowedPaths = ['/dashboard', '/product', '/cart']
   const isGuestAllowed = guestAllowedPaths.some((path) => location.pathname.startsWith(path))
 
   // Admin or authenticated user
