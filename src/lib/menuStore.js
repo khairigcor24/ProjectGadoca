@@ -49,6 +49,28 @@ export function isLocalMenuId(id) {
   return String(id).startsWith('local-')
 }
 
+export function updateCustomMenu(id, data) {
+  const items = getCustomMenus()
+  const index = items.findIndex((item) => String(item.id) === String(id))
+  if (index === -1) return null
+
+  const thumbnail = data.thumbnail?.trim() || items[index].thumbnail || DEFAULT_MENU_IMAGE
+  const updated = {
+    ...items[index],
+    title: data.title.trim(),
+    category: data.category,
+    price: Number(data.price),
+    stock: Number(data.stock),
+    description: data.description?.trim() || '',
+    thumbnail,
+    images: [thumbnail],
+  }
+
+  items[index] = updated
+  saveCustomMenus(items)
+  return updated
+}
+
 export function deleteCustomMenu(id) {
   const items = getCustomMenus()
   const filtered = items.filter((item) => String(item.id) !== String(id))

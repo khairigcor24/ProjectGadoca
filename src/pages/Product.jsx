@@ -21,6 +21,7 @@ function Product() {
   const [search, setSearch] = useState('')
   const [error, setError] = useState(null)
   const [showForm, setShowForm] = useState(false)
+  const [editingItem, setEditingItem] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -44,6 +45,27 @@ function Product() {
 
   function handleMenuAdded(newItem) {
     setProducts((prev) => [newItem, ...prev])
+  }
+
+  function handleMenuUpdated(updatedItem) {
+    setProducts((prev) =>
+      prev.map((product) => (product.id === updatedItem.id ? updatedItem : product))
+    )
+  }
+
+  function handleOpenAddForm() {
+    setEditingItem(null)
+    setShowForm(true)
+  }
+
+  function handleEditMenu(product) {
+    setEditingItem(product)
+    setShowForm(true)
+  }
+
+  function handleCloseForm() {
+    setShowForm(false)
+    setEditingItem(null)
   }
 
   function handleDeleteMenu(id) {
@@ -79,14 +101,24 @@ function Product() {
           <span className="menu-card__stock">Stok: {product.stock}</span>
         </div>
         {product.isLocal && !isGuest() && (
-          <button
-            type="button"
-            className="menu-card__delete"
-            onClick={() => handleDeleteMenu(product.id)}
-            aria-label="Hapus menu"
-          >
-            Hapus
-          </button>
+          <div className="menu-card__actions">
+            <button
+              type="button"
+              className="menu-card__edit"
+              onClick={() => handleEditMenu(product)}
+              aria-label="Edit menu"
+            >
+              Edit
+            </button>
+            <button
+              type="button"
+              className="menu-card__delete"
+              onClick={() => handleDeleteMenu(product.id)}
+              aria-label="Hapus menu"
+            >
+              Hapus
+            </button>
+          </div>
         )}
       </div>
     </article>
@@ -98,7 +130,7 @@ function Product() {
         <div className="table-head">
           <h3>Daftar Menu</h3>
           {!isGuest() && (
-            <button type="button" onClick={() => setShowForm(true)}>
+            <button type="button" onClick={handleOpenAddForm}>
               Tambah Menu
             </button>
           )}
@@ -155,8 +187,10 @@ function Product() {
 
       <MenuFormModal
         open={showForm && !isGuest()}
-        onClose={() => setShowForm(false)}
+        onClose={handleCloseForm}
         onAdded={handleMenuAdded}
+        editItem={editingItem}
+        onUpdated={handleMenuUpdated}
       />
     </>
   )

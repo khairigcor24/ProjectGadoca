@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { addCustomMenu, DEFAULT_MENU_IMAGE, MENU_CATEGORIES } from '../lib/menuStore'
+import { useEffect, useState } from 'react'
+import { addCustomMenu, updateCustomMenu, MENU_CATEGORIES } from '../lib/menuStore'
 
 const emptyForm = {
   title: '',
@@ -10,9 +10,28 @@ const emptyForm = {
   thumbnail: '',
 }
 
-function MenuFormModal({ open, onClose, onAdded }) {
+function MenuFormModal({ open, onClose, onAdded, editItem = null, onUpdated }) {
   const [form, setForm] = useState(emptyForm)
   const [error, setError] = useState('')
+  const isEditing = Boolean(editItem)
+
+  useEffect(() => {
+    if (!open) return
+
+    if (editItem) {
+      setForm({
+        title: editItem.title,
+        category: editItem.category,
+        price: String(editItem.price),
+        stock: String(editItem.stock),
+        description: editItem.description || '',
+        thumbnail: editItem.thumbnail || '',
+      })
+    } else {
+      setForm(emptyForm)
+    }
+    setError('')
+  }, [open, editItem])
 
   if (!open) return null
 
@@ -50,6 +69,18 @@ function MenuFormModal({ open, onClose, onAdded }) {
       return
     }
 
+    if (isEditing) {
+      const updated = updateCustomMenu(editItem.id, form)
+      if (!updated) {
+        setError('Menu tidak ditemukan.')
+        return
+      }
+      setForm(emptyForm)
+      onUpdated?.(updated)
+      onClose()
+      return
+    }
+
     const newItem = addCustomMenu(form)
     setForm(emptyForm)
     onAdded(newItem)
@@ -72,7 +103,7 @@ function MenuFormModal({ open, onClose, onAdded }) {
         aria-labelledby="menu-form-title"
       >
         <div className="modal-card__head">
-          <h3 id="menu-form-title">Tambah Menu Baru</h3>
+          <h3 id="menu-form-title">{isEditing ? 'Edit Menu' : 'Tambah Menu Baru'}</h3>
           <button type="button" className="modal-close" onClick={handleClose} aria-label="Tutup">
             ×
           </button>
@@ -162,7 +193,7 @@ function MenuFormModal({ open, onClose, onAdded }) {
             <button type="button" className="btn-outline" onClick={handleClose}>
               Batal
             </button>
-            <button type="submit">Simpan Menu</button>
+            <button type="submit">{isEditing ? 'Simpan Perubahan' : 'Simpan Menu'}</button>
           </div>
         </form>
       </div>

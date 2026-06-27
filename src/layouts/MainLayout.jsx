@@ -19,8 +19,8 @@ function MainLayout() {
         <div className="page-content">
           <Outlet />
         </div>
-        <Footer />
       </main>
+      <Footer />
     </div>
   )
 }

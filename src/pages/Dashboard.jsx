@@ -1,9 +1,29 @@
+import { useNavigate } from 'react-router-dom'
 import { isGuest } from '../lib/auth'
 import GuestDashboard from './GuestDashboard'
 import MonthlySalesChart from '../components/MonthlySalesChart'
 import LocationDemographics from '../components/LocationDemographics'
 
 function AdminDashboard() {
+  const navigate = useNavigate()
+
+  const heroButtonStyle = {
+    padding: '0.75rem 2rem',
+    border: '1px solid white',
+    backgroundColor: 'transparent',
+    color: 'white',
+    borderRadius: '4px',
+    cursor: 'pointer',
+    fontSize: '1rem',
+    fontWeight: '500',
+    transition: 'all 0.3s ease',
+  }
+
+  function handleHeroButtonHover(e, active) {
+    e.currentTarget.style.backgroundColor = active ? 'white' : 'transparent'
+    e.currentTarget.style.color = active ? '#000' : 'white'
+  }
+
   const stats = [
     { label: 'Pelanggan', value: '3.782', trend: '+11,01%', positive: true },
     { label: 'Pesanan', value: '5.359', trend: '+9,05%', positive: true },
@@ -79,49 +99,19 @@ function AdminDashboard() {
           <div style={{ display: 'flex', gap: '1rem' }}>
             <button
               type="button"
-              style={{
-                padding: '0.75rem 2rem',
-                border: '1px solid white',
-                backgroundColor: 'transparent',
-                color: 'white',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '1rem',
-                fontWeight: '500',
-                transition: 'all 0.3s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.backgroundColor = 'white'
-                e.target.style.color = '#000'
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.backgroundColor = 'transparent'
-                e.target.style.color = 'white'
-              }}
+              style={heroButtonStyle}
+              onClick={() => navigate('/product')}
+              onMouseEnter={(e) => handleHeroButtonHover(e, true)}
+              onMouseLeave={(e) => handleHeroButtonHover(e, false)}
             >
               Order Online
             </button>
             <button
               type="button"
-              style={{
-                padding: '0.75rem 2rem',
-                border: '1px solid white',
-                backgroundColor: 'transparent',
-                color: 'white',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontSize: '1rem',
-                fontWeight: '500',
-                transition: 'all 0.3s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.backgroundColor = 'white'
-                e.target.style.color = '#000'
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.backgroundColor = 'transparent'
-                e.target.style.color = 'white'
-              }}
+              style={heroButtonStyle}
+              onClick={() => navigate('/product')}
+              onMouseEnter={(e) => handleHeroButtonHover(e, true)}
+              onMouseLeave={(e) => handleHeroButtonHover(e, false)}
             >
               Our Menu
             </button>
