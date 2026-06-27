@@ -1,4 +1,9 @@
-function Dashboard() {
+import { isGuest } from '../lib/auth'
+import GuestDashboard from './GuestDashboard'
+import MonthlySalesChart from '../components/MonthlySalesChart'
+import LocationDemographics from '../components/LocationDemographics'
+
+function AdminDashboard() {
   const stats = [
     { label: 'Pelanggan', value: '3.782', trend: '+11,01%', positive: true },
     { label: 'Pesanan', value: '5.359', trend: '+9,05%', positive: true },
@@ -138,19 +143,13 @@ function Dashboard() {
         <article className="panel large">
           <h3>Target Bulanan</h3>
           <p>Target penjualan yang Anda tetapkan setiap bulan</p>
-          <div className="chart-placeholder">
-            <span>Area Grafik</span>
-          </div>
+          <MonthlySalesChart />
         </article>
 
         <article className="panel">
           <h3>Demografi Pelanggan</h3>
-          <p>Jumlah pelanggan berdasarkan lokasi</p>
-          <ul className="country-list">
-            <li><strong>Jakarta</strong><span>2.379 pelanggan (79%)</span></li>
-            <li><strong>Bandung</strong><span>589 pelanggan (23%)</span></li>
-            <li><strong>Surabaya</strong><span>412 pelanggan (14%)</span></li>
-          </ul>
+          <p>Jumlah pelanggan berdasarkan wilayah Pekanbaru</p>
+          <LocationDemographics />
         </article>
       </section>
 
@@ -186,6 +185,14 @@ function Dashboard() {
       </section>
     </div>
   )
+}
+
+function Dashboard() {
+  if (isGuest()) {
+    return <GuestDashboard />
+  }
+
+  return <AdminDashboard />
 }
 
 export default Dashboard

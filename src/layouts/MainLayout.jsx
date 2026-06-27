@@ -2,6 +2,7 @@ import { Outlet, useLocation } from 'react-router-dom'
 import Header from '../sections/Header'
 import HeroBanner from '../sections/HeroBanner'
 import Sidebar from '../sections/Sidebar'
+import Footer from '../sections/Footer'
 
 function MainLayout() {
   const location = useLocation()
@@ -18,6 +19,7 @@ function MainLayout() {
         <div className="page-content">
           <Outlet />
         </div>
+        <Footer />
       </main>
     </div>
   )

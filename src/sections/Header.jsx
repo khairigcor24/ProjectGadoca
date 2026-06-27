@@ -35,10 +35,20 @@ const adminPageMeta = {
 }
 
 const guestPageMeta = {
+  '/dashboard/overview': {
+    title: 'Beranda',
+    crumb: 'Belanja / Beranda',
+    tagline: 'Ringkasan pesanan dan menu pilihan untuk Anda.',
+  },
   '/product': {
     title: 'Daftar Menu',
     crumb: 'Belanja / Menu',
     tagline: 'Jelajahi menu favorit kami.',
+  },
+  '/cart': {
+    title: 'Keranjang',
+    crumb: 'Belanja / Keranjang',
+    tagline: 'Review pesanan sebelum checkout.',
   },
 }
 
