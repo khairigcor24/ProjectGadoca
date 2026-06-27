@@ -65,4 +65,4 @@ class CategoryController extends Controller
         Category::findOrFail($id)->delete();
         return response()->json(null, 204);
     }
-}}
+} 
