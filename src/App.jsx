@@ -18,6 +18,10 @@ const Cart = lazy(() => import('./pages/Cart'))
 const Transactions = lazy(() => import('./pages/Transactions'))
 const Analytics = lazy(() => import('./pages/Analytics'))
 const UserProfile = lazy(() => import('./pages/UserProfile'))
+const Categories = lazy(() => import('./pages/Categories'))
+const Tables = lazy(() => import('./pages/Tables'))
+const Cashiers = lazy(() => import('./pages/Cashiers'))
+const OrderQueue = lazy(() => import('./pages/OrderQueue'))
 
 function PageFallback() {
   return (
@@ -56,6 +60,12 @@ function App() {
               <Route path="product" element={<Product />} />
               <Route path="product/:id" element={<ProductDetail />} />
               <Route path="cart" element={<Cart />} />
+
+              {/* Admin Pages */}
+              <Route path="admin/categories" element={<Categories />} />
+              <Route path="admin/tables" element={<Tables />} />
+              <Route path="admin/cashiers" element={<Cashiers />} />
+              <Route path="admin/queue" element={<OrderQueue />} />
 
               {/* Other Pages */}
               <Route path="transactions" element={<Transactions />} />

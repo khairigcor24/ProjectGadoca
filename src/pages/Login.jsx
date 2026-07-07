@@ -24,14 +24,20 @@ function Login() {
     setLoading(true)
     try {
       if (email === DEMO_EMAIL && password === DEMO_PASSWORD) {
-        setToken('gadocaa-demo-token')
+        setToken('gadocaa-demo-token', 'ADMIN')
         navigate(from, { replace: true })
+        return
+      }
+
+      if (email === 'kasir@gmail.com' && password === 'kasir123') {
+        setToken('gadocaa-kasir-token', 'KASIR')
+        navigate('/admin/queue', { replace: true })
         return
       }
 
       const { data } = await axios.post(LOGIN_URL, { email, password })
       if (data?.token) {
-        setToken(data.token)
+        setToken(data.token, 'ADMIN')
         navigate(from, { replace: true })
       }
     } catch {
@@ -111,9 +117,9 @@ function Login() {
         </div>
 
         <p className="login-hint">
-          Gadocaa: {DEMO_EMAIL} / {DEMO_PASSWORD}
+          Gadocaa (Admin): {DEMO_EMAIL} / {DEMO_PASSWORD}
           <br />
-          ReqRes (Axios): eve.holt@reqres.in / cityslicka
+          Gadocaa (Kasir): kasir@gmail.com / kasir123
         </p>
       </div>
     </div>

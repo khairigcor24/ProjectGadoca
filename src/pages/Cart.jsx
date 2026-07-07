@@ -291,15 +291,15 @@ function Cart() {
 
                 <div style={{ marginBottom: '2rem' }}>
                   <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: '500' }}>
-                    Alamat Pengiriman
+                    Nomor Meja
                   </label>
-                  <textarea
+                  <input
+                    type="text"
                     name="address"
                     value={customerInfo.address}
                     onChange={handleInputChange}
-                    className="form-input form-textarea"
-                    placeholder="Masukkan alamat lengkap"
-                    rows={4}
+                    className="form-input"
+                    placeholder="Masukkan nomor meja (misal: Meja 5)"
                     required
                   />
                 </div>
