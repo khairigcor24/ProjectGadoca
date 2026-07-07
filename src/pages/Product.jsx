@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
 import { Link } from 'react-router-dom'
-import { formatMenuPrice, getCustomMenus, deleteCustomMenu, isLocalMenuId } from '../lib/menuStore'
+import { formatMenuPrice } from '../lib/menuStore'
 import { isGuest } from '../lib/auth'
 import MenuFormModal from '../sections/MenuFormModal'
+import { supabase } from '../lib/supabase'
 
 const DRINK_CATEGORIES = ['Kopi', 'Minuman']
 const FOOD_CATEGORIES = ['Pastry', 'Roti', 'Makanan', 'Snack']
@@ -25,23 +26,24 @@ function Product() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    const customMenus = getCustomMenus()
-
-    axios
-      .get('')
-      .then((response) => {
-        const apiProducts = Array.isArray(response.data?.products)
-          ? response.data.products
-          : []
-
-        setProducts([...customMenus, ...apiProducts])
-      })
-      .catch((err) => {
-        setError(err.message)
-        setProducts(customMenus)
-      })
-      .finally(() => setLoading(false))
+    fetchProducts()
   }, [])
+
+  async function fetchProducts() {
+    setLoading(true)
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .order('created_at', { ascending: false })
+    
+    if (error) {
+      setError(error.message)
+      setProducts([])
+    } else {
+      setProducts(data || [])
+    }
+    setLoading(false)
+  }
 
   function handleMenuAdded(newItem) {
     setProducts((prev) => [newItem, ...prev])
@@ -68,10 +70,14 @@ function Product() {
     setEditingItem(null)
   }
 
-  function handleDeleteMenu(id) {
-    if (isLocalMenuId(id) && window.confirm('Yakin ingin menghapus menu ini?')) {
-      deleteCustomMenu(id)
-      setProducts((prev) => prev.filter((product) => product.id !== id))
+  async function handleDeleteMenu(id) {
+    if (window.confirm('Yakin ingin menghapus menu ini?')) {
+      const { error } = await supabase.from('products').delete().eq('id', id)
+      if (error) {
+        alert('Gagal menghapus: ' + error.message)
+      } else {
+        setProducts((prev) => prev.filter((product) => product.id !== id))
+      }
     }
   }
 
@@ -84,7 +90,6 @@ function Product() {
 
   const renderMenuCard = (product) => (
     <article key={product.id} className="menu-card">
-      {product.isLocal ? <span className="menu-card__badge">Baru</span> : null}
       <img
         src={product.thumbnail}
         alt={product.title}
@@ -100,7 +105,7 @@ function Product() {
           <span className="menu-card__price">{formatMenuPrice(product)}</span>
           <span className="menu-card__stock">Stok: {product.stock}</span>
         </div>
-        {product.isLocal && !isGuest() && (
+        {!isGuest() && (
           <div className="menu-card__actions">
             <button
               type="button"

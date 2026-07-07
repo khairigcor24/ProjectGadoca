@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { supabase } from '../lib/supabase'
 
 function UserIcon({ size = 16 }) {
   return (
@@ -18,13 +19,10 @@ function TrashIcon({ size = 16 }) {
   )
 }
 
-const INITIAL_USERS = [
-  { id: 1, name: 'Admin Manajemen', username: 'admin', role: 'ADMIN' },
-  { id: 2, name: 'Kasir Utama', username: 'kasir', role: 'KASIR' },
-]
-
 function Cashiers() {
-  const [users, setUsers] = useState(INITIAL_USERS)
+  const [users, setUsers] = useState([])
+  const [search, setSearch] = useState('')
+  const [loading, setLoading] = useState(true)
   const [formData, setFormData] = useState({
     name: '',
     username: '',
@@ -32,28 +30,61 @@ function Cashiers() {
     role: 'KASIR',
   })
 
+  useEffect(() => {
+    fetchUsers()
+  }, [])
+
+  async function fetchUsers() {
+    setLoading(true)
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .order('id', { ascending: true })
+    
+    if (!error && data) {
+      setUsers(data)
+    }
+    setLoading(false)
+  }
+
+  async function handleDelete(id) {
+    if (window.confirm('Yakin ingin menghapus pengguna ini?')) {
+      const { error } = await supabase.from('users').delete().eq('id', id)
+      if (!error) {
+        setUsers(users.filter(u => u.id !== id))
+      } else {
+        alert('Gagal menghapus: ' + error.message)
+      }
+    }
+  }
+
   function handleChange(e) {
     const { name, value } = e.target
     setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
-  function handleSave(e) {
+  async function handleSave(e) {
     e.preventDefault()
     if (!formData.name || !formData.username || !formData.password) return
-    setUsers((prev) => [
-      ...prev,
-      {
-        id: Date.now(),
-        name: formData.name,
-        username: formData.username,
-        role: formData.role,
-      },
-    ])
-    setFormData({ name: '', username: '', password: '', role: 'KASIR' })
-  }
+    
+    // Karena di SQL tabel users memakai 'email', dan di state lama 'username'
+    // kita asumsikan input username dipakai untuk field 'email' di form.
+    // Jika input name="username", maka formData.username akan masuk ke tabel email.
+    
+    const { data, error } = await supabase.from('users').insert([{
+      name: formData.name,
+      email: formData.username,
+      password: formData.password,
+      role: formData.role
+    }]).select().single()
 
-  function handleDelete(id) {
-    setUsers((prev) => prev.filter((u) => u.id !== id))
+    if (error) {
+      alert('Gagal menambah user: ' + error.message)
+      return
+    }
+
+    setUsers((prev) => [...prev, data])
+    setFormData({ name: '', username: '', password: '', role: 'KASIR' })
   }
 
   return (
@@ -151,7 +182,7 @@ function Cashiers() {
               <thead>
                 <tr>
                   <th style={{ paddingLeft: '24px', background: 'transparent' }}>PENGGUNA</th>
-                  <th style={{ background: 'transparent' }}>USERNAME</th>
+                  <th style={{ background: 'transparent' }}>USERNAME / EMAIL</th>
                   <th style={{ background: 'transparent' }}>ROLE</th>
                   <th style={{ textAlign: 'right', paddingRight: '24px', background: 'transparent' }}>AKSI</th>
                 </tr>
@@ -167,7 +198,7 @@ function Cashiers() {
                         <span style={{ fontWeight: 600, color: 'var(--cafe-ink)' }}>{user.name}</span>
                       </div>
                     </td>
-                    <td style={{ color: '#64748b', fontSize: '14px' }}>{user.username}</td>
+                    <td style={{ color: '#64748b', fontSize: '14px' }}>{user.email || user.username}</td>
                     <td>
                       {user.role === 'ADMIN' ? (
                         <span style={{ background: '#f3e8ff', color: '#9333ea', padding: '4px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em' }}>

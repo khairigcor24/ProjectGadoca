@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { supabase } from '../lib/supabase'
 
 function ReceiptIcon({ size = 20 }) {
   return (
@@ -36,16 +37,32 @@ function ChevronDownIcon({ size = 16 }) {
   )
 }
 
-const DUMMY_TRANSACTIONS = [
-  { id: 'ORD-2E8601', date: '30 Jun 2026, 20:54', customer: 'deo', table: 'NO 10', total: 'Rp 22.000' },
-  { id: 'ORD-15EF81', date: '30 Jun 2026, 20:54', customer: 'Deo Fahreza', table: 'NO 1', total: 'Rp 17.000' },
-  { id: 'ORD-100077', date: '09 Jun 2026, 14:02', customer: 'Deo Fahreza', table: 'NO 1', total: 'Rp 27.000' },
-  { id: 'ORD-9544D5', date: '05 Jun 2026, 20:06', customer: 'Arzana', table: 'NO 10', total: 'Rp 4.027.000' },
-  { id: 'ORD-EC2E93', date: '05 Jun 2026, 20:01', customer: 'Kita Ngoding', table: 'NO 10', total: 'Rp 47.000' },
-]
-
 function Transactions() {
-  const [transactions] = useState(DUMMY_TRANSACTIONS)
+  const [transactions, setTransactions] = useState([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchTransactions()
+  }, [])
+
+  async function fetchTransactions() {
+    setLoading(true)
+    const { data, error } = await supabase
+      .from('transactions')
+      .select('*')
+      .order('created_at', { ascending: false })
+    
+    if (!error && data) {
+      setTransactions(data)
+    }
+    setLoading(false)
+  }
+
+  // Calculate totals
+  const totalPesanan = transactions.length
+  const totalPendapatan = transactions.reduce((sum, trx) => sum + Number(trx.total_amount), 0)
+  const formattedPendapatan = new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(totalPendapatan)
+
 
   return (
     <div className="cat-page" style={{ padding: '0 0 40px' }}>
@@ -65,7 +82,7 @@ function Transactions() {
           </div>
           <div>
             <p style={{ fontSize: '11px', fontWeight: 700, color: 'var(--cafe-muted)', letterSpacing: '0.05em', marginBottom: '4px', textTransform: 'uppercase' }}>TOTAL PESANAN</p>
-            <h3 style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--cafe-ink)', margin: 0 }}>16</h3>
+            <h3 style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--cafe-ink)', margin: 0 }}>{totalPesanan}</h3>
           </div>
         </div>
 
@@ -75,7 +92,7 @@ function Transactions() {
           </div>
           <div>
             <p style={{ fontSize: '11px', fontWeight: 700, color: 'var(--cafe-muted)', letterSpacing: '0.05em', marginBottom: '4px', textTransform: 'uppercase' }}>TOTAL PENDAPATAN</p>
-            <h3 style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--cafe-ink)', margin: 0 }}>Rp 335.028.000</h3>
+            <h3 style={{ fontSize: '1.5rem', fontWeight: 600, color: 'var(--cafe-ink)', margin: 0 }}>{formattedPendapatan}</h3>
           </div>
         </div>
       </div>
@@ -113,17 +130,24 @@ function Transactions() {
               </tr>
             </thead>
             <tbody>
-              {transactions.map((trx, index) => (
-                <tr key={index}>
-                  <td style={{ paddingLeft: '24px', color: '#64748b' }}>{trx.date}</td>
+              {transactions.map((trx) => (
+                <tr key={trx.id}>
+                  <td style={{ paddingLeft: '24px', color: '#64748b' }}>
+                    {new Date(trx.created_at).toLocaleString('id-ID', {
+                      day: '2-digit', month: 'short', year: 'numeric',
+                      hour: '2-digit', minute: '2-digit'
+                    })}
+                  </td>
                   <td>
                     <span style={{ background: '#f1f5f9', color: '#475569', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: 600 }}>
                       {trx.id}
                     </span>
                   </td>
                   <td style={{ color: 'var(--cafe-ink)' }}>{trx.customer}</td>
-                  <td style={{ color: '#64748b' }}>{trx.table}</td>
-                  <td style={{ fontWeight: 600, color: 'var(--cafe-ink)' }}>{trx.total}</td>
+                  <td style={{ color: '#64748b' }}>{trx.table_number}</td>
+                  <td style={{ fontWeight: 600, color: 'var(--cafe-ink)' }}>
+                    {new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', maximumFractionDigits: 0 }).format(trx.total_amount)}
+                  </td>
                   <td style={{ textAlign: 'right', paddingRight: '24px' }}>
                     <button style={{ background: 'transparent', border: 'none', color: '#0ea5e9', fontSize: '13px', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                       Lihat <ChevronDownIcon size={14} />

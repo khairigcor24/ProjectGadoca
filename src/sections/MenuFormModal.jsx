@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
-import { addCustomMenu, updateCustomMenu, MENU_CATEGORIES } from '../lib/menuStore'
+import { MENU_CATEGORIES } from '../lib/menuStore'
+import { supabase } from '../lib/supabase'
 
 const emptyForm = {
   title: '',
@@ -52,7 +53,7 @@ function MenuFormModal({ open, onClose, onAdded, editItem = null, onUpdated }) {
     }
   }
 
-  function handleSubmit(e) {
+  async function handleSubmit(e) {
     e.preventDefault()
     setError('')
 
@@ -70,20 +71,52 @@ function MenuFormModal({ open, onClose, onAdded, editItem = null, onUpdated }) {
     }
 
     if (isEditing) {
-      const updated = updateCustomMenu(editItem.id, form)
-      if (!updated) {
-        setError('Menu tidak ditemukan.')
+      const { data, error: updateError } = await supabase
+        .from('products')
+        .update({
+          title: form.title.trim(),
+          category: form.category,
+          price: Number(form.price),
+          stock: Number(form.stock),
+          description: form.description.trim(),
+          thumbnail: form.thumbnail || 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=600&q=80',
+        })
+        .eq('id', editItem.id)
+        .select()
+        .single()
+      
+      if (updateError) {
+        setError('Gagal mengupdate: ' + updateError.message)
         return
       }
       setForm(emptyForm)
-      onUpdated?.(updated)
+      onUpdated?.(data)
       onClose()
       return
     }
 
-    const newItem = addCustomMenu(form)
+    const { data, error: insertError } = await supabase
+      .from('products')
+      .insert([
+        {
+          title: form.title.trim(),
+          category: form.category,
+          price: Number(form.price),
+          stock: Number(form.stock),
+          description: form.description.trim(),
+          thumbnail: form.thumbnail || 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=600&q=80',
+        }
+      ])
+      .select()
+      .single()
+
+    if (insertError) {
+      setError('Gagal menyimpan: ' + insertError.message)
+      return
+    }
+
     setForm(emptyForm)
-    onAdded(newItem)
+    onAdded(data)
     onClose()
   }
 

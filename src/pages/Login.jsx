@@ -1,10 +1,9 @@
-import axios from 'axios'
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import gadocaaLogo from '../assets/gadocaa-logo.png'
+import { supabase } from '../lib/supabase'
 import { setToken, setGuestToken } from '../lib/auth'
 
-const LOGIN_URL = 'https://reqres.in/api/login'
 const DEMO_EMAIL = 'gadocaa@gmail.com'
 const DEMO_PASSWORD = 'gadocaa123'
 
@@ -13,8 +12,8 @@ function Login() {
   const location = useLocation()
   const from = location.state?.from?.pathname || '/dashboard/overview'
 
-  const [email, setEmail] = useState(DEMO_EMAIL)
-  const [password, setPassword] = useState(DEMO_PASSWORD)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
 
@@ -22,26 +21,29 @@ function Login() {
     e.preventDefault()
     setError('')
     setLoading(true)
+
     try {
-      if (email === DEMO_EMAIL && password === DEMO_PASSWORD) {
-        setToken('gadocaa-demo-token', 'ADMIN')
-        navigate(from, { replace: true })
-        return
-      }
+      const { data: user, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('email', email)
+        .eq('password', password)
+        .single()
 
-      if (email === 'kasir@gmail.com' && password === 'kasir123') {
-        setToken('gadocaa-kasir-token', 'KASIR')
-        navigate('/admin/queue', { replace: true })
-        return
-      }
-
-      const { data } = await axios.post(LOGIN_URL, { email, password })
-      if (data?.token) {
-        setToken(data.token, 'ADMIN')
-        navigate(from, { replace: true })
+      if (error || !user) {
+        setError('Login gagal. Periksa email dan password.')
+      } else {
+        // Set token (bisa pakai user.id sebagai token dummy)
+        setToken(`gadocaa-${user.role.toLowerCase()}-token`, user.role)
+        
+        if (user.role === 'KASIR') {
+          navigate('/admin/queue', { replace: true })
+        } else {
+          navigate(from, { replace: true })
+        }
       }
     } catch {
-      setError('Login gagal. Periksa email dan password.')
+      setError('Terjadi kesalahan jaringan.')
     } finally {
       setLoading(false)
     }
