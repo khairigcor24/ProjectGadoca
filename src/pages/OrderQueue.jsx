@@ -18,12 +18,20 @@ function CheckIcon({ size = 16 }) {
   )
 }
 
+function BellIcon({ size = 24 }) {
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.63-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.64 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z" />
+    </svg>
+  )
+}
+
 function OrderQueue() {
   const [queue, setQueue] = useState([])
   const [loading, setLoading] = useState(true)
 
-  // Ref untuk toast
-  const [toastMessage, setToastMessage] = useState('')
+  // Alert modal untuk pesanan baru
+  const [newOrderAlert, setNewOrderAlert] = useState(null)
 
   useEffect(() => {
     fetchOrders()
@@ -38,11 +46,8 @@ function OrderQueue() {
           const newOrder = payload.new
           setQueue((prev) => [newOrder, ...prev])
           
-          // Show Toast & Play TTS
-          setToastMessage(`Pesanan Baru: ${newOrder.table_number}`)
-          playTTS(`Ada pesanan baru dari ${newOrder.table_number}`)
-          
-          setTimeout(() => setToastMessage(''), 5000)
+          // Show Modal & Play TTS
+          playTTS(newOrder)
         }
       )
       .subscribe()
@@ -66,11 +71,30 @@ function OrderQueue() {
     setLoading(false)
   }
 
-  function playTTS(text) {
+  function playTTS(order) {
     if ('speechSynthesis' in window) {
+      // Hentikan antrian suara sebelumnya jika masih ada
+      window.speechSynthesis.cancel()
+
+      const text = `Ada pesanan baru dari meja ${order.table_number}, atas nama ${order.customer_name}.`
       const utterance = new SpeechSynthesisUtterance(text)
       utterance.lang = 'id-ID' // Bahasa Indonesia
+      
+      utterance.onstart = () => {
+        setNewOrderAlert(order)
+      }
+      utterance.onend = () => {
+        setTimeout(() => setNewOrderAlert(null), 1000) // Tunggu sebentar lalu tutup
+      }
+      utterance.onerror = () => {
+        setNewOrderAlert(order)
+        setTimeout(() => setNewOrderAlert(null), 4000)
+      }
       window.speechSynthesis.speak(utterance)
+    } else {
+      // Jika browser tidak mendukung TTS, tampilkan modal 4 detik saja
+      setNewOrderAlert(order)
+      setTimeout(() => setNewOrderAlert(null), 4000)
     }
   }
 
@@ -97,16 +121,63 @@ function OrderQueue() {
           </p>
         </div>
 
-        {/* Toast Notification Element */}
-        {toastMessage && (
+        {/* Custom Order Notification Modal */}
+        {newOrderAlert && (
           <div style={{
-            position: 'absolute', top: 0, right: 0, background: '#10b981', color: '#fff', 
-            padding: '12px 24px', borderRadius: '8px', fontWeight: 600, boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
-            animation: 'fadeIn 0.3s ease-out'
+            position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+            background: 'rgba(15, 23, 42, 0.4)',
+            backdropFilter: 'blur(2px)',
+            zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center',
+            animation: 'fadeIn 0.2s ease-out'
           }}>
-            🔔 {toastMessage}
+            <div style={{
+              background: 'white', borderRadius: '24px', padding: '40px 32px',
+              width: '90%', maxWidth: '420px', textAlign: 'center',
+              boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+              animation: 'slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1)'
+            }}>
+              <div style={{
+                width: '72px', height: '72px', borderRadius: '50%', background: '#e0f2fe',
+                color: '#0ea5e9', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                margin: '0 auto 24px auto'
+              }}>
+                <BellIcon size={36} />
+              </div>
+              <h2 style={{ fontSize: '1.5rem', fontWeight: 600, color: '#1e293b', margin: '0 0 12px 0' }}>Pesanan Baru!</h2>
+              <p style={{ fontSize: '1.05rem', color: '#475569', margin: '0 0 24px 0', lineHeight: 1.5 }}>
+                Orderan masuk dari <strong style={{ color: '#0ea5e9' }}>{newOrderAlert.table_number}</strong><br/>
+                atas nama <strong style={{ color: '#1e293b' }}>{newOrderAlert.customer_name}</strong>.
+              </p>
+              
+              <div style={{ background: '#f8fafc', borderRadius: '16px', padding: '24px', border: '1px solid #f1f5f9' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '16px' }}>
+                  <span className="tts-dot" style={{ animationDelay: '0s' }}></span>
+                  <span className="tts-dot" style={{ animationDelay: '0.2s' }}></span>
+                  <span className="tts-dot" style={{ animationDelay: '0.4s' }}></span>
+                </div>
+                <p style={{ fontSize: '0.75rem', fontWeight: 700, letterSpacing: '0.05em', color: '#64748b', margin: 0, textTransform: 'uppercase' }}>
+                  Sedang membacakan pesanan...
+                </p>
+              </div>
+            </div>
           </div>
         )}
+        
+        <style dangerouslySetInnerHTML={{__html: `
+          @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+          }
+          .tts-dot {
+            width: 10px; height: 10px; border-radius: 50%;
+            background-color: #38bdf8;
+            animation: pulse 1.4s infinite ease-in-out both;
+          }
+          @keyframes pulse {
+            0%, 80%, 100% { transform: scale(0); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+          }
+        `}} />
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
