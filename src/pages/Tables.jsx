@@ -24,8 +24,8 @@ function TrashIcon({ size = 16 }) {
   )
 }
 
-// Create base URL for menu page
-const BASE_URL = window.location.origin + '/product?table='
+// Create base URL for cart page
+const BASE_URL = window.location.origin + '/cart?table='
 
 const DUMMY_TABLES = [
   { id: 1, name: 'NO 1', url: BASE_URL + 'NO 1', status: 'Aktif' },

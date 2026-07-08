@@ -23,6 +23,19 @@ function Cart() {
 
   useEffect(() => {
     setCart(getCart())
+    
+    // Otomatis isi nomor meja jika ada di URL QR Code
+    const params = new URLSearchParams(window.location.search)
+    const tableParam = params.get('table')
+    if (tableParam) {
+      setCustomerInfo(prev => ({ ...prev, address: tableParam }))
+      localStorage.setItem('gadoca_table', tableParam)
+    } else {
+      const savedTable = localStorage.getItem('gadoca_table')
+      if (savedTable) {
+        setCustomerInfo(prev => ({ ...prev, address: savedTable }))
+      }
+    }
   }, [])
 
   useEffect(() => {
