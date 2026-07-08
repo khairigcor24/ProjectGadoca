@@ -4,6 +4,7 @@ import axios from 'axios'
 import { formatMenuPrice, getCustomMenuById, isLocalMenuId } from '../lib/menuStore'
 import { addToCart } from '../lib/cartStore'
 import { PlusIcon, MinusIcon } from '../components/Icons'
+import { supabase } from '../lib/supabase'
 
 function ProductDetailView({ product }) {
   const [quantity, setQuantity] = useState(1)
@@ -174,13 +175,17 @@ function RemoteProductDetail({ id }) {
   const [error, setError] = useState(null)
 
   useEffect(() => {
-    axios
-      .get(`https://dummyjson.com/products/${id}`)
-      .then((response) => {
-        setProduct(response.data)
-      })
-      .catch((err) => {
-        setError(err.message)
+    supabase
+      .from('products')
+      .select('*')
+      .eq('id', id)
+      .single()
+      .then(({ data, error }) => {
+        if (error) {
+          setError(error.message)
+        } else {
+          setProduct(data)
+        }
       })
   }, [id])
 
