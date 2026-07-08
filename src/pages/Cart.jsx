@@ -5,6 +5,7 @@ import { getCart, removeFromCart, updateCartQuantity, clearCart, getCartTotal } 
 import { createGuestOrder } from '../lib/guestOrderStore'
 import { PlusIcon, MinusIcon } from '../components/Icons'
 import qrisImage from '../assets/qrisgadoca.png'
+import { supabase } from '../lib/supabase'
 
 function Cart() {
   const [cart, setCart] = useState([])
@@ -69,8 +70,24 @@ function Cart() {
     setCustomerInfo((prev) => ({ ...prev, [name]: value }))
   }
 
-  function handleQrisPaymentConfirmed() {
+  async function handleQrisPaymentConfirmed() {
     const total = getCartTotal()
+    
+    // Simpan ke Supabase
+    const { error } = await supabase.from('orders').insert([{
+      id: `ORD-${Date.now().toString().slice(-4)}`,
+      customer_name: customerInfo.name,
+      table_number: customerInfo.address, 
+      items: cart,
+      total_amount: total,
+      status: 'NEW'
+    }])
+
+    if (error) {
+      alert('Gagal mengirim pesanan: ' + error.message)
+      return
+    }
+
     createGuestOrder(customerInfo, cart, total, paymentMethod, 'Delivered')
     setShowQrisPreview(false)
     setOrderSuccess(true)
@@ -87,7 +104,7 @@ function Cart() {
     }, 1500)
   }
 
-  function handleCheckout(e) {
+  async function handleCheckout(e) {
     e.preventDefault()
 
     if (!customerInfo.name.trim() || !customerInfo.phone.trim() || !customerInfo.address.trim()) {
@@ -107,9 +124,25 @@ function Cart() {
       return
     }
 
-    // Create and save guest order with payment method
     const total = getCartTotal()
-    createGuestOrder(customerInfo, cart, total, paymentMethod)
+    
+    // Simpan ke Supabase
+    const { error } = await supabase.from('orders').insert([{
+      id: `ORD-${Date.now().toString().slice(-4)}`,
+      customer_name: customerInfo.name,
+      table_number: customerInfo.address, // karena di UI memakai field alamat sbg meja? atau address.
+      items: cart,
+      total_amount: total,
+      status: 'NEW'
+    }])
+
+    if (error) {
+      alert('Gagal mengirim pesanan: ' + error.message)
+      return
+    }
+
+    createGuestOrder(customerInfo, cart, total, paymentMethod) // tetep simpan lokal buat history guest
+
 
     setOrderSuccess(true)
     setTimeout(() => {

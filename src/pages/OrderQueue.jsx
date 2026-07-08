@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
+import { supabase } from '../lib/supabase'
 
 function ClockIcon({ size = 16 }) {
   return (
@@ -17,37 +18,70 @@ function CheckIcon({ size = 16 }) {
   )
 }
 
-const INITIAL_QUEUE = [
-  {
-    id: 'ORD-8F92',
-    table: 'Meja 5',
-    items: ['2x Kopi Susu Aren', '1x Roti Bakar Coklat'],
-    time: '14:22',
-    status: 'NEW',
-  },
-  {
-    id: 'ORD-7A11',
-    table: 'Meja 2',
-    items: ['1x Espresso', '1x Cheesecake'],
-    time: '14:25',
-    status: 'NEW',
-  },
-  {
-    id: 'ORD-6B33',
-    table: 'Meja 10',
-    items: ['3x Americano Dingin', '2x Kentang Goreng'],
-    time: '14:10',
-    status: 'PREPARING',
-  },
-]
-
 function OrderQueue() {
-  const [queue, setQueue] = useState(INITIAL_QUEUE)
+  const [queue, setQueue] = useState([])
+  const [loading, setLoading] = useState(true)
 
-  function moveOrder(id, newStatus) {
+  // Ref untuk toast
+  const [toastMessage, setToastMessage] = useState('')
+
+  useEffect(() => {
+    fetchOrders()
+
+    // Subscribe to realtime orders
+    const channel = supabase
+      .channel('orders_channel')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'orders' },
+        (payload) => {
+          const newOrder = payload.new
+          setQueue((prev) => [newOrder, ...prev])
+          
+          // Show Toast & Play TTS
+          setToastMessage(`Pesanan Baru: ${newOrder.table_number}`)
+          playTTS(`Ada pesanan baru dari ${newOrder.table_number}`)
+          
+          setTimeout(() => setToastMessage(''), 5000)
+        }
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [])
+
+  async function fetchOrders() {
+    setLoading(true)
+    const { data, error } = await supabase
+      .from('orders')
+      .select('*')
+      .neq('status', 'DONE') // Hanya ambil yg belum selesai
+      .order('created_at', { ascending: false })
+    
+    if (!error && data) {
+      setQueue(data)
+    }
+    setLoading(false)
+  }
+
+  function playTTS(text) {
+    if ('speechSynthesis' in window) {
+      const utterance = new SpeechSynthesisUtterance(text)
+      utterance.lang = 'id-ID' // Bahasa Indonesia
+      window.speechSynthesis.speak(utterance)
+    }
+  }
+
+  async function moveOrder(id, newStatus) {
+    // Update local state for immediate feedback
     setQueue((prev) =>
       prev.map((order) => (order.id === id ? { ...order, status: newStatus } : order))
     )
+    
+    // Update Supabase
+    await supabase.from('orders').update({ status: newStatus }).eq('id', id)
   }
 
   const newOrders = queue.filter((o) => o.status === 'NEW')
@@ -55,13 +89,24 @@ function OrderQueue() {
 
   return (
     <div className="cat-page" style={{ padding: '0 0 40px' }}>
-      <div className="cat-page__header" style={{ marginBottom: '24px' }}>
+      <div className="cat-page__header" style={{ marginBottom: '24px', position: 'relative' }}>
         <div>
           <h2 className="cat-page__title" style={{ fontSize: '1.75rem', fontWeight: 600, color: 'var(--cafe-ink)', marginBottom: '8px' }}>Antrian Pemesanan</h2>
           <p className="cat-page__subtitle" style={{ color: 'var(--cafe-muted)' }}>
             Pantau dan kelola pesanan pelanggan yang sedang aktif.
           </p>
         </div>
+
+        {/* Toast Notification Element */}
+        {toastMessage && (
+          <div style={{
+            position: 'absolute', top: 0, right: 0, background: '#10b981', color: '#fff', 
+            padding: '12px 24px', borderRadius: '8px', fontWeight: 600, boxShadow: '0 4px 12px rgba(16, 185, 129, 0.3)',
+            animation: 'fadeIn 0.3s ease-out'
+          }}>
+            🔔 {toastMessage}
+          </div>
+        )}
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '24px' }}>
@@ -85,18 +130,22 @@ function OrderQueue() {
                     {order.id}
                   </span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#64748b', fontWeight: 500 }}>
-                    <ClockIcon size={14} /> {order.time}
+                    <ClockIcon size={14} /> 
+                    {new Date(order.created_at || new Date()).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
                 <h4 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--cafe-ink)', marginBottom: '8px' }}>
-                  {order.table}
+                  {order.table_number || order.table}
                 </h4>
                 <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 16px 0', fontSize: '13.5px', color: '#475569', lineHeight: '1.6' }}>
-                  {order.items.map((item, idx) => (
-                    <li key={idx} style={{ display: 'flex', gap: '8px' }}>
-                      <span style={{ color: '#0ea5e9' }}>•</span> {item}
-                    </li>
-                  ))}
+                  {order.items.map((item, idx) => {
+                    const label = typeof item === 'string' ? item : `${item.quantity}x ${item.title}`
+                    return (
+                      <li key={idx} style={{ display: 'flex', gap: '8px' }}>
+                        <span style={{ color: '#0ea5e9' }}>•</span> {label}
+                      </li>
+                    )
+                  })}
                 </ul>
                 <button
                   onClick={() => moveOrder(order.id, 'PREPARING')}
@@ -134,18 +183,22 @@ function OrderQueue() {
                     {order.id}
                   </span>
                   <span style={{ display: 'flex', alignItems: 'center', gap: '4px', fontSize: '12px', color: '#64748b', fontWeight: 500 }}>
-                    <ClockIcon size={14} /> {order.time}
+                    <ClockIcon size={14} /> 
+                    {new Date(order.created_at || new Date()).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })}
                   </span>
                 </div>
                 <h4 style={{ fontSize: '16px', fontWeight: 600, color: 'var(--cafe-ink)', marginBottom: '8px' }}>
-                  {order.table}
+                  {order.table_number || order.table}
                 </h4>
                 <ul style={{ listStyle: 'none', padding: 0, margin: '0 0 16px 0', fontSize: '13.5px', color: '#475569', lineHeight: '1.6' }}>
-                  {order.items.map((item, idx) => (
-                    <li key={idx} style={{ display: 'flex', gap: '8px' }}>
-                      <span style={{ color: '#0ea5e9' }}>•</span> {item}
-                    </li>
-                  ))}
+                  {order.items.map((item, idx) => {
+                    const label = typeof item === 'string' ? item : `${item.quantity}x ${item.title}`
+                    return (
+                      <li key={idx} style={{ display: 'flex', gap: '8px' }}>
+                        <span style={{ color: '#0ea5e9' }}>•</span> {label}
+                      </li>
+                    )
+                  })}
                 </ul>
                 <button
                   onClick={() => moveOrder(order.id, 'DONE')}
