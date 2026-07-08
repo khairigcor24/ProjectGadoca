@@ -79,8 +79,5 @@ export function deleteCustomMenu(id) {
 
 export function formatMenuPrice(product) {
   const value = Number(product.price)
-  if (product.isLocal) {
-    return `Rp ${value.toLocaleString('id-ID')}`
-  }
-  return `$${value}`
+  return `Rp ${value.toLocaleString('id-ID')}`
 }
